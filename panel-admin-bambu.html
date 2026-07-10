@@ -225,9 +225,12 @@ function renderTabla(){
           <button class="ac-editar" onclick="abrirModal('${c.id}')">Editar</button>
           ${c.estado === 'suspendido'
             ? `<button class="ac-activar" onclick="cambiarEstado('${c.id}','activo')">Activar</button>`
+            : c.estado === 'eliminado'
+            ? `<button class="ac-activar" onclick="cambiarEstado('${c.id}','activo')">Reactivar</button>`
             : `<button class="ac-suspender" onclick="cambiarEstado('${c.id}','suspendido')">Suspender</button>`
           }
           <button class="ac-eliminar" onclick="eliminarCliente('${c.id}')">Eliminar</button>
+          ${c.estado === 'eliminado' ? `<button class="ac-eliminar" style="background:#4a0000;" onclick="borrarDefinitivo('${c.id}')">Borrar del listado</button>` : ''}
           <button class="ac-descargar" onclick="descargarTarifario('${c.id}')">📥 Tarifario</button>
         </div>
       </td>
@@ -244,7 +247,12 @@ function cambiarEstado(id, estado){
 }
 
 function eliminarCliente(id){
-  if(!confirm('¿Seguro que quieres ELIMINAR al cliente "' + id + '"? Esta acción no se puede deshacer.')) return;
+  if(!confirm('¿Seguro que quieres ELIMINAR (bloquear definitivamente) al cliente "' + id + '"? Su tarifario se bloqueará apenas tenga internet. Podrás borrarlo del listado después si quieres.')) return;
+  db.collection('clientes').doc(id).update({ estado: 'eliminado' }).catch(err => alert('Error: ' + err.message));
+}
+
+function borrarDefinitivo(id){
+  if(!confirm('Esto borra el registro por completo de la base de datos (no solo bloquear). Úsalo solo si ya no vas a necesitar controlar a este cliente nunca más. ¿Continuar?')) return;
   db.collection('clientes').doc(id).delete().catch(err => alert('Error: ' + err.message));
 }
 
