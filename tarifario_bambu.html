@@ -99,6 +99,11 @@
         <h2>&#9203; Periodo de prueba finalizado</h2>
         <p>Ya probaste la app TARIFARIO PARADERO BAMBU durante 15 dias. Para seguir usandola, contacta a Rogelio para adquirir la version completa.</p>
         <a class="contacto-btn" href="tel:922280289">Llamar: 922280289</a>
+        <div style="margin-top:18px; width:100%; max-width:280px;">
+            <input type="password" id="inputCodigoDesbloqueo" placeholder="Código de desbloqueo" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ffcc00; text-align:center; font-size:15px; box-sizing:border-box;">
+            <button onclick="intentarDesbloqueo()" style="width:100%; margin-top:8px; padding:10px; background:#ffcc00; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Desbloquear</button>
+            <div id="errorCodigo" style="color:#ff6b6b; font-size:12px; margin-top:6px; min-height:14px;"></div>
+        </div>
     </div>
     <div id="trialBadge"></div>
     <h1>TARIFARIO PARADERO BAMBU</h1>
@@ -206,6 +211,19 @@
         var overlay = document.getElementById('trialLockOverlay');
         var badge = document.getElementById('trialBadge');
         var CLAVE_LOCAL = 'tpb_fecha_instalacion_' + CLIENT_ID;
+        var CLAVE_DESBLOQUEO_MANUAL = 'tpb_desbloqueado_' + CLIENT_ID;
+        // Código secreto para desbloquear manualmente (dispositivos sin internet). Cámbialo si quieres otro.
+        var CODIGO_SECRETO = "431986";
+
+        window.intentarDesbloqueo = function(){
+            var val = document.getElementById('inputCodigoDesbloqueo').value.trim();
+            if(val === CODIGO_SECRETO){
+                localStorage.setItem(CLAVE_DESBLOQUEO_MANUAL, '1');
+                ocultarBloqueo();
+            } else {
+                document.getElementById('errorCodigo').textContent = 'Código incorrecto.';
+            }
+        };
 
         function mostrarBloqueo(mensaje){
             overlay.querySelector('p').innerHTML = mensaje;
@@ -221,6 +239,11 @@
         }
         // Respaldo local por si el celular jamas tuvo internet (primer uso sin conexion)
         function evaluarLocal(){
+            if(localStorage.getItem(CLAVE_DESBLOQUEO_MANUAL) === '1'){
+                ocultarBloqueo();
+                if(badge) badge.style.display = 'none';
+                return;
+            }
             var ahora = Date.now();
             var instalado = localStorage.getItem(CLAVE_LOCAL);
             if(!instalado){ instalado = ahora; localStorage.setItem(CLAVE_LOCAL, ahora); }
